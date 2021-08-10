@@ -1,21 +1,21 @@
-const  { DynamoDb, Lambda } = require('aws-sdk');
+const { DynamoDB, Lambda } = require('aws-sdk');
 
 exports.handler = async function(event) {
-    console.log('request:', JSON.stringify(event, undefined, 2));
+    console.log("request:", JSON.stringify(event, undefined, 2));
 
-    // creates clients for AWS SDK
-    const dynamo = new DynamoDb();
+    // create AWS SDK clients
+    const dynamo = new DynamoDB();
     const lambda = new Lambda();
 
-    // call dynamo entry for "Path" and increment hits (hits++)
+    // update dynamo entry for "path" with hits++
     await dynamo.updateItem({
         TableName: process.env.HITS_TABLE_NAME,
-        key: { path: { $: event.path } },
-        UpdateExpressions: 'ADD hits :incr',
-        ExpressionAttributeValues: { ':incr': { N: '1' } }
+        Key: {path: {S: event.path}},
+        UpdateExpression: 'ADD hits :incr',
+        ExpressionAttributeValues: {':incr': {N: '1'}}
     }).promise();
 
-    //call downstream function and capture response
+    // call downstream function and capture response
     const resp = await lambda.invoke({
         FunctionName: process.env.DOWNSTREAM_FUNCTION_NAME,
         Payload: JSON.stringify(event)
@@ -23,5 +23,6 @@ exports.handler = async function(event) {
 
     console.log('downstream response:', JSON.stringify(resp, undefined, 2));
 
+    // return response back to upstream caller
     return JSON.parse(resp.Payload);
 };
