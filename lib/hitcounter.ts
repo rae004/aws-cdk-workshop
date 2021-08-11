@@ -16,7 +16,8 @@ export class HitCounter extends cdk.Construct {
         super(scope, id);
 
         const table = new dynamodb.Table(this, 'Hits', {
-            partitionKey: { name: 'path', type: dynamodb.AttributeType.STRING }
+            partitionKey: { name: 'path', type: dynamodb.AttributeType.STRING },
+            serverSideEncryption: true
         })
         this.table = table;
 
